@@ -330,6 +330,58 @@ class TestSimpleFileUploadAPI:
           reset()
 
 
+class TestChunkedFileUploadAPI:
+  def test_upload_chunks_restricted_file_type(self):
+    """Test that upload_chunks returns proper error message for restricted file types."""
+    from django.core.files.uploadhandler import StopUpload
+    
+    request = Mock(
+      method='GET',
+      GET={
+        'qqtotalparts': '1',
+        'qquuid': 'test-uuid-123',
+        'qqfilename': 'test.exe'
+      },
+      FILES={'file': SimpleUploadedFile('test.exe', b'Hello World!')},
+      META={'upload_failed': 'Uploading files with type ".exe" is not allowed. Hue is configured to restrict this type.'},
+    )
+    
+    # Mock the StopUpload exception
+    with patch('filebrowser.api.StopUpload') as mock_stop_upload:
+      mock_stop_upload.side_effect = StopUpload()
+      
+      response = upload_chunks(request)
+      response_content = response.content.decode('utf-8')
+      
+      assert response.status_code == 500
+      assert response_content == 'Uploading files with type ".exe" is not allowed. Hue is configured to restrict this type.'
+
+  def test_upload_chunks_generic_error(self):
+    """Test that upload_chunks returns generic error message when no specific error is provided."""
+    from django.core.files.uploadhandler import StopUpload
+    
+    request = Mock(
+      method='GET',
+      GET={
+        'qqtotalparts': '1',
+        'qquuid': 'test-uuid-123',
+        'qqfilename': 'test.txt'
+      },
+      FILES={'file': SimpleUploadedFile('test.txt', b'Hello World!')},
+      META={},  # No specific error message
+    )
+    
+    # Mock the StopUpload exception
+    with patch('filebrowser.api.StopUpload') as mock_stop_upload:
+      mock_stop_upload.side_effect = StopUpload()
+      
+      response = upload_chunks(request)
+      response_content = response.content.decode('utf-8')
+      
+      assert response.status_code == 500
+      assert response_content == 'Error occurred during chunk file upload.'
+
+
 class TestRenameAPI:
   def test_rename_success(self):
     request = Mock(

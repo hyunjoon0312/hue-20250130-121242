@@ -1541,7 +1541,9 @@ def upload_chunks(request):
     for _ in request.FILES.values():  # This processes the upload.
       pass
   except StopUpload:
-    return JsonResponse({'success': False, 'error': 'Error in upload'})
+    # Check if there's a specific error message from the upload handler
+    error_message = request.META.get('upload_failed', 'Error in upload')
+    return JsonResponse({'success': False, 'error': error_message})
 
   # case where file is larger than the single chunk size
   if int(request.GET.get("qqtotalparts", 0)) > 0:
