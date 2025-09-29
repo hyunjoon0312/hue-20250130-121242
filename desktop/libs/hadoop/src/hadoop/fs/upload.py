@@ -247,6 +247,21 @@ class FineUploaderChunkedUploadHandler(FileUploadHandler):
     self._starttime = time.time()
     self.chunk_file_path = os.path.join(ARCHIVE_UPLOAD_TEMPDIR.get(), f'{self.qquuid}_{self.qqpartindex}')
 
+  def new_file(self, field_name, file_name, *args, **kwargs):
+    """
+    Called when a new file is being uploaded. Performs file extension validation.
+    Args:
+    - field_name (str): The name of the file field in the form.
+    - file_name (str): The name of the uploaded file.
+    """
+    # Check if the file type is restricted
+    _, file_type = os.path.splitext(file_name)
+    if RESTRICT_FILE_EXTENSIONS.get() and file_type.lower() in [ext.lower() for ext in RESTRICT_FILE_EXTENSIONS.get()]:
+      err_message = f'Uploading files with type "{file_type}" is not allowed. Hue is configured to restrict this type.'
+      LOG.error(err_message)
+      self.request.META['upload_failed'] = err_message
+      raise StopUpload()
+
   def receive_data_chunk(self, raw_data, start):
     """
     Receives a chunk of data and writes it to a temporary file.

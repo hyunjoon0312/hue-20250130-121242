@@ -425,7 +425,8 @@ def upload_chunks(request):
     for _ in request.FILES.values():
       pass
   except StopUpload as e:
-    error_message = 'Error occurred during chunk file upload.'
+    # Check if there's a specific error message from the upload handler
+    error_message = request.META.get('upload_failed', 'Error occurred during chunk file upload.')
     LOG.error(f'{error_message} {str(e)}')
     return HttpResponse(error_message, status=500)
 
