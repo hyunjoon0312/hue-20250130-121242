@@ -425,11 +425,9 @@ def upload_chunks(request):
     for _ in request.FILES.values():
       pass
   except StopUpload as e:
-    # Check if there's a specific error message from the upload handler
-    error_message = request.META.get('upload_failed')
-    if not error_message:
-      error_message = 'Error occurred during chunk file upload.'
-    LOG.error(f'{error_message} {str(e)}')
+    # Get the actual error message from request.META if available
+    error_message = request.META.get('upload_failed', "Error occurred during chunk file upload.")
+    LOG.error(f"{error_message} {str(e)}")
     return JsonResponse({'success': False, 'error': error_message}, status=500)
 
   # Check if the file is larger than the single chunk size
@@ -445,8 +443,8 @@ def upload_chunks(request):
       return JsonResponse(response)
 
     except Exception as e:
-      error_message = 'Error occurred during chunk file upload.'
-      LOG.error(f'{error_message} {str(e)}')
+      error_message = "Error occurred during chunk file upload."
+      LOG.error(f"{error_message} {str(e)}")
       return JsonResponse({'success': False, 'error': error_message}, status=500)
 
 
@@ -467,8 +465,8 @@ def upload_complete(request):
 
     return JsonResponse(response)
   except Exception as e:
-    error_message = 'Error occurred during chunk file upload completion.'
-    LOG.error(f'{error_message} {str(e)}')
+    error_message = "Error occurred during chunk file upload completion."
+    LOG.error(f"{error_message} {str(e)}")
     return JsonResponse({'success': False, 'error': error_message}, status=500)
 
 
