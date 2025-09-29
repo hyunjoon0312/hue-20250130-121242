@@ -426,9 +426,11 @@ def upload_chunks(request):
       pass
   except StopUpload as e:
     # Check if there's a specific error message from the upload handler
-    error_message = request.META.get('upload_failed', 'Error occurred during chunk file upload.')
+    error_message = request.META.get('upload_failed')
+    if not error_message:
+      error_message = 'Error occurred during chunk file upload.'
     LOG.error(f'{error_message} {str(e)}')
-    return HttpResponse(error_message, status=500)
+    return JsonResponse({'success': False, 'error': error_message}, status=500)
 
   # Check if the file is larger than the single chunk size
   total_parts = int(request.GET.get("qqtotalparts", 0))
@@ -445,7 +447,7 @@ def upload_chunks(request):
     except Exception as e:
       error_message = 'Error occurred during chunk file upload.'
       LOG.error(f'{error_message} {str(e)}')
-      return HttpResponse(error_message, status=500)
+      return JsonResponse({'success': False, 'error': error_message}, status=500)
 
 
 @api_error_handler
@@ -467,7 +469,7 @@ def upload_complete(request):
   except Exception as e:
     error_message = 'Error occurred during chunk file upload completion.'
     LOG.error(f'{error_message} {str(e)}')
-    return HttpResponse(error_message, status=500)
+    return JsonResponse({'success': False, 'error': error_message}, status=500)
 
 
 @api_error_handler

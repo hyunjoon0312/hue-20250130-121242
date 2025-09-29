@@ -351,10 +351,11 @@ class TestChunkedFileUploadAPI:
       mock_stop_upload.side_effect = StopUpload()
       
       response = upload_chunks(request)
-      response_content = response.content.decode('utf-8')
+      response_data = response.json()
       
       assert response.status_code == 500
-      assert response_content == 'Uploading files with type ".exe" is not allowed. Hue is configured to restrict this type.'
+      assert response_data['success'] == False
+      assert response_data['error'] == 'Uploading files with type ".exe" is not allowed. Hue is configured to restrict this type.'
 
   def test_upload_chunks_generic_error(self):
     """Test that upload_chunks returns generic error message when no specific error is provided."""
@@ -376,10 +377,11 @@ class TestChunkedFileUploadAPI:
       mock_stop_upload.side_effect = StopUpload()
       
       response = upload_chunks(request)
-      response_content = response.content.decode('utf-8')
+      response_data = response.json()
       
       assert response.status_code == 500
-      assert response_content == 'Error occurred during chunk file upload.'
+      assert response_data['success'] == False
+      assert response_data['error'] == 'Error occurred during chunk file upload.'
 
 
 class TestRenameAPI:
